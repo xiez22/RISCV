@@ -82,7 +82,9 @@ class LEADER {
 	uint32_t remain_time = 0;
 	bool BAD_ESTIMATE = false;
 	//To calculate the rate.
-	uint32_t error_cnt = 0, total_cnt = 0;
+	uint32_t right_cnt = 0, total_cnt = 0;
+	//To store the history of branch.
+	std::map<uint32_t, uint8_t> history;
 public:
 	bool able_to_fetch() {
 		return remain_time == 0;
@@ -90,9 +92,31 @@ public:
 	void set_lock(uint32_t waiting_time) {
 		remain_time = waiting_time;
 	}
-	void set_bad_flag() {
-		++error_cnt;
+	void set_bad_flag(const RUN_DATA& run_data) {
 		BAD_ESTIMATE = true;
+		//2-Bit Estimate.
+		auto iter = history.find(run_data.pc);
+		if (iter->second == 0b00)
+			iter->second = 0b01;
+		else if (iter->second == 0b01)
+			iter->second = 0b10;
+		else if (iter->second == 0b10)
+			iter->second = 0b01;
+		else
+			iter->second = 0b10;
+	}
+	void estimate_success(const RUN_DATA& run_data) {
+		++right_cnt;
+		//2-Bit Estimate.
+		auto iter = history.find(run_data.pc);
+		if (iter->second == 0b00)
+			iter->second = 0b00;
+		else if (iter->second == 0b01)
+			iter->second = 0b00;
+		else if (iter->second == 0b10)
+			iter->second = 0b11;
+		else
+			iter->second = 0b11;
 	}
 	bool able_to_continue() {
 		bool return_val = !BAD_ESTIMATE;
@@ -112,12 +136,25 @@ public:
 			--remain_time;
 	}
 	bool estimate(const RUN_DATA& run_data) {
-		//No estimate. Just return true.
 		++total_cnt;
-		return true;
+		//2-Bit Estimate.
+		auto iter = history.find(run_data.pc);
+		if (iter == history.end()) {
+			if (int32_t(run_data.imm) < 0) {
+				history.insert(std::make_pair(run_data.pc, 0b11));
+				return true;
+			}
+			else {
+				history.insert(std::make_pair(run_data.pc, 0b00));
+				return false;
+			}
+			history.insert(std::make_pair(run_data.pc, 0b11));
+			return true;
+		}
+		return iter->second >= 0b10;
 	}
 	double accuracy_query() {
-		return 1.0 - double(error_cnt) / double(total_cnt);
+		return double(right_cnt) / double(total_cnt);
 	}
 };
 LEADER leader;
@@ -239,74 +276,32 @@ public:
 			break;
 		case Beq:
 			if (result.rs1 == result.rs2) {
-				if (!result.estimate_result) {
-					reg.PC = result.pc + (((int32_t)result.imm) << 20 >> 20);
-					leader.set_bad_flag();
-				}
-			}
-			else if (result.estimate_result) {
-				reg.PC = result.pc + 4u;
-				leader.set_bad_flag();
+				result.tmp = true;
 			}
  			break;
 		case Bne:
 			if (result.rs1 != result.rs2) {
-				if (!result.estimate_result) {
-					reg.PC = result.pc + (((int32_t)result.imm) << 20 >> 20);
-					leader.set_bad_flag();
-				}
-			}
-			else if (result.estimate_result) {
-				reg.PC = result.pc + 4u;
-				leader.set_bad_flag();
+				result.tmp = true;
 			}
 			break;
 		case Blt:
 			if (int32_t(result.rs1) < int32_t(result.rs2)) {
-				if (!result.estimate_result) {
-					reg.PC = result.pc + (((int32_t)result.imm) << 20 >> 20);
-					leader.set_bad_flag();
-				}
-			}
-			else if (result.estimate_result) {
-				reg.PC = result.pc + 4u;
-				leader.set_bad_flag();
+				result.tmp = true;
 			}
 			break;
 		case Bge:
 			if (int32_t(result.rs1) >= int32_t(result.rs2)) {
-				if (!result.estimate_result) {
-					reg.PC = result.pc + (((int32_t)result.imm) << 20 >> 20);
-					leader.set_bad_flag();
-				}
-			}
-			else if (result.estimate_result) {
-				reg.PC = result.pc + 4u;
-				leader.set_bad_flag();
+				result.tmp = true;
 			}
 			break;
 		case Bltu:
 			if (result.rs1 < result.rs2) {
-				if (!result.estimate_result) {
-					reg.PC = result.pc + (((int32_t)result.imm) << 20 >> 20);
-					leader.set_bad_flag();
-				}
-			}
-			else if (result.estimate_result) {
-				reg.PC = result.pc + 4u;
-				leader.set_bad_flag();
+				result.tmp = true;
 			}
 			break;
 		case Bgeu:
 			if (result.rs1 >= result.rs2) {
-				if (!result.estimate_result) {
-					reg.PC = result.pc + (((int32_t)result.imm) << 20 >> 20);
-					leader.set_bad_flag();
-				}
-			}
-			else if (result.estimate_result) {
-				reg.PC = result.pc + 4u;
-				leader.set_bad_flag();
+				result.tmp = true;
 			}
 			break;
 		case Lui:
@@ -414,6 +409,22 @@ public:
 		case Lui:
 		case Auipc:
 			reg.wreg(result.rd, result.tmp);
+			break;
+		case Beq:
+		case Bne:
+		case Bge:
+		case Bgeu:
+		case Blt:
+		case Bltu:
+			if (result.tmp != result.estimate_result) {
+				leader.set_bad_flag(result);
+				if (result.tmp)
+					reg.PC = result.pc + (((int32_t)result.imm) << 20 >> 20);
+				else
+					reg.PC = result.pc + 4u;
+			}
+			else
+				leader.estimate_success(result);
 			break;
 		default:
 			break;
@@ -774,14 +785,14 @@ int main() {
 		//UPDATE
 		//Check if bad estimate.
 		if (leader.able_to_continue())
-			fetch_result = fetch_temp, decode_result = decode_temp;
+			fetch_result = fetch_temp, decode_result = decode_temp,
+			execute_result = execute_temp, mem_result = mem_temp;
 		else {
 			RUN_DATA null_data;
-			fetch_result = null_data;
-			decode_result = null_data;
+			fetch_result = null_data, decode_result = null_data,
+				execute_result = null_data, mem_result = null_data;
 		}
-		execute_result = execute_temp, mem_result = mem_temp;
-
+		
 		if (reg.exit_flag)
 			break;
 	}
