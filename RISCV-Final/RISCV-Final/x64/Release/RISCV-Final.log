@@ -1,0 +1,7 @@
+﻿  源.cpp
+  正在生成代码
+  Previous IPDB not found, fall back to full compilation.
+E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(707): warning C4715: “FETCH::decode”: 不是所有的控件路径都返回值
+  All 187 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  已完成代码的生成
+  RISCV-Final.vcxproj -> E:\Project\PPCA\RISCV-Final\RISCV-Final\x64\Release\RISCV-Final.exe
