@@ -1,9 +1,8 @@
 ﻿  源.cpp
-E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(419,1): warning C4805:  “!=”: 在操作中将类型“uint32_t”与类型“bool”混合不安全
+E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(425,1): warning C4805:  “!=”: 在操作中将类型“uint32_t”与类型“bool”混合不安全
   正在生成代码
-E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(718): warning C4715: “FETCH::decode”: 不是所有的控件路径都返回值
-  3 of 282 functions ( 1.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+  114 of 393 functions (29.0%) were compiled, the rest were copied from previous compilation.
+    91 functions were new in current compilation
+    26 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   RISCV-Final.vcxproj -> E:\Project\PPCA\RISCV-Final\RISCV-Final\x64\Release\RISCV-Final.exe

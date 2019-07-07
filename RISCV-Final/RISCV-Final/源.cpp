@@ -1,3 +1,5 @@
+//By ligongzzz.
+//Version 2019.07.07
 #include <iostream>
 #include <fstream>
 #include <cstdio>
@@ -5,21 +7,25 @@
 #include <cstring>
 #include <utility>
 #include <map>
-#define RISCV_RELEASE
-#define SHOW_ACCURACY
+#include <unordered_map>
 
-//闲置参数
+#define RISCV_RELEASE
+#define NO_SHOW_ACCURACY
+
+//Waiting Parameters
 const uint32_t JALR_WAITING_TIME = 4u;
 const uint32_t LOAD_WAITING_TIME = 2u;
 
-//--------------------------------------常用函数----------------------------------------------
+//--------------------------------------Functions----------------------------------------------
 uint32_t fetch_num(uint32_t instruction, uint32_t from, uint32_t to) {
 	return (instruction >> from) & ((1u << (to - from + 1)) - 1u);
 }
 
-enum INST { Add, Sub, Xor, Or, And, Sll, Srl, Sra, Slt, Sltu, Lb, Lh, Lw, Lbu, Lhu, Addi, 
-	Xori, Ori, Andi, Slli, Srli, Srai, Slti, Sltiu, Sb, Sh, Sw, Beq, Bne, Blt, Bge, Bltu, 
-	Bgeu, Lui, Auipc, Jal, Jalr };
+enum INST {
+	Add, Sub, Xor, Or, And, Sll, Srl, Sra, Slt, Sltu, Lb, Lh, Lw, Lbu, Lhu, Addi,
+	Xori, Ori, Andi, Slli, Srli, Srai, Slti, Sltiu, Sb, Sh, Sw, Beq, Bne, Blt, Bge, Bltu,
+	Bgeu, Lui, Auipc, Jal, Jalr
+};
 
 class COMPUTER {
 public:
@@ -77,14 +83,14 @@ public:
 	bool executable = false, to_inform_rs = false, estimate_result = false;
 };
 
-//全局运行控制器
+//Global Running Controller
 class LEADER {
 	uint32_t remain_time = 0;
 	bool BAD_ESTIMATE = false;
 	//To calculate the rate.
 	uint32_t right_cnt = 0, total_cnt = 0;
 	//To store the history of branch.
-	std::map<uint32_t, uint8_t> history;
+	std::unordered_map<uint32_t, uint8_t> history;
 public:
 	bool able_to_fetch() {
 		return remain_time == 0;
@@ -94,7 +100,7 @@ public:
 	}
 	void set_bad_flag(const RUN_DATA& run_data) {
 		BAD_ESTIMATE = true;
-		//2-Bit Estimate.
+		//2-Bits Estimate.
 		auto iter = history.find(run_data.pc);
 		if (iter->second == 0b00)
 			iter->second = 0b01;
@@ -107,7 +113,7 @@ public:
 	}
 	void estimate_success(const RUN_DATA& run_data) {
 		++right_cnt;
-		//2-Bit Estimate.
+		//2-Bits Estimate.
 		auto iter = history.find(run_data.pc);
 		if (iter->second == 0b00)
 			iter->second = 0b00;
@@ -137,7 +143,7 @@ public:
 	}
 	bool estimate(const RUN_DATA& run_data) {
 		++total_cnt;
-		//2-Bit Estimate.
+		//2-Bits Estimate.
 		auto iter = history.find(run_data.pc);
 		if (iter == history.end()) {
 			if (int32_t(run_data.imm) < 0) {
@@ -158,7 +164,7 @@ public:
 	}
 };
 LEADER leader;
-//---------------------------------------执行环节----------------------------------------------
+//---------------------------------------Execution Part----------------------------------------------
 class EXECUTE {
 	//INFORMATION DATA
 	std::map<uint32_t, uint32_t> inform_data;
@@ -176,7 +182,7 @@ public:
 			return result;
 		}
 		//Choose the right rs value.
-		auto iter = inform_data.find(result.rs1_pos); 
+		auto iter = inform_data.find(result.rs1_pos);
 		if (iter != inform_data.end())
 			result.rs1 = iter->second;
 		iter = inform_data.find(result.rs2_pos);
@@ -278,7 +284,7 @@ public:
 			if (result.rs1 == result.rs2) {
 				result.tmp = true;
 			}
- 			break;
+			break;
 		case Bne:
 			if (result.rs1 != result.rs2) {
 				result.tmp = true;
@@ -433,8 +439,8 @@ public:
 	}
 };
 
-//---------------------------------------解码环节----------------------------------------------
-//Decode部分
+//---------------------------------------Decode Part----------------------------------------------
+//Decode Part
 class DECODE {
 public:
 	RUN_DATA decode(RUN_DATA result) {
@@ -448,7 +454,7 @@ public:
 	}
 };
 DECODE decoder;
-//Fetch部分
+//Fetch Part
 class FETCH {
 	RUN_DATA R_decode() {
 		RUN_DATA ans;
@@ -674,7 +680,7 @@ class FETCH {
 				(fetch_num(instruction, 31, 31) << 20);
 			ans.rd = fetch_num(instruction, 7, 11);
 
-            //Hazard Instruction. Special Operation.	
+			//Hazard Instruction. Special Operation.	
 			reg.PC = ((((int32_t)ans.imm) << 11) >> 11) + ans.pc - 4u;
 		}
 		else {
@@ -729,8 +735,8 @@ public:
 };
 FETCH fetcher;
 
-//---------------------------------------其它部分----------------------------------------------
-//读入文件
+//---------------------------------------Other Part----------------------------------------------
+//Read In File
 void read_in() {
 	char temp[12] = { 0 };
 	int cur_pos = 0;
@@ -744,7 +750,7 @@ void read_in() {
 	}
 }
 
-//初始化
+//Initialize
 void initialize() {
 	reg.PC = 0;
 	memset(reg.Mem, 0, sizeof(reg.Mem));
@@ -771,7 +777,7 @@ int main() {
 		executer.inform(execute_temp);
 		auto mem_temp = accesser.mem_access(execute_result);
 		executer.inform(mem_temp);
-		
+
 		leader.update();
 #ifdef RISCV_DEBUG
 		if (mem_result.executable) {
@@ -792,7 +798,7 @@ int main() {
 			fetch_result = null_data, decode_result = null_data,
 				execute_result = null_data, mem_result = null_data;
 		}
-		
+
 		if (reg.exit_flag)
 			break;
 	}
