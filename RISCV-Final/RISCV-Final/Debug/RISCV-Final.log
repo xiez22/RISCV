@@ -1,5 +1,4 @@
 ﻿  源.cpp
-E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(729,17): warning C4477:  “sscanf”: 格式字符串“%x”需要类型“unsigned int *”的参数，但可变参数 1 拥有了类型“uint8_t *”
-E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(729,17): message :  请考虑在格式字符串中使用“%hhx”
-E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(729,17): message : E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(705) : warning C4715: “FETCH::decode”: 不是所有的控件路径都返回值
+E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(437,1): warning C4805:  “!=”: 在操作中将类型“uint32_t”与类型“bool”混合不安全
+E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(437,1): warning C4805: E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(736) : warning C4715: “FETCH::decode”: 不是所有的控件路径都返回值
   RISCV-Final.vcxproj -> E:\Project\PPCA\RISCV-Final\RISCV-Final\Debug\RISCV-Final.exe

@@ -1,0 +1,6 @@
+﻿  源.cpp
+E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(437,1): warning C4805:  “!=”: 在操作中将类型“uint32_t”与类型“bool”混合不安全
+E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(757,1): error C4996:  'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+D:\Windows Kits\10\Include\10.0.17763.0\ucrt\stdio.h(2263): message :  参见“sscanf”的声明
+E:\Project\PPCA\RISCV-Final\RISCV-Final\RISCV-Final\源.cpp(760,1): error C4996:  'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+D:\Windows Kits\10\Include\10.0.17763.0\ucrt\stdio.h(2263): message :  参见“sscanf”的声明
