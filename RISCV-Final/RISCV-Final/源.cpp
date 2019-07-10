@@ -105,7 +105,7 @@ public:
 
 		//2-Bits Estimate.
 		auto iter = history.find(run_data.pc);
-		auto mode = iter->second.first & 0b111;
+		auto mode = iter->second.first & 0b1111;
 		if (iter->second.second[mode] == 0b00)
 			iter->second.second[mode] = 0b01;
 		else if (iter->second.second[mode] == 0b01)
@@ -124,7 +124,7 @@ public:
 
 		//2-Bits Estimate.
 		auto iter = history.find(run_data.pc);
-		auto mode = iter->second.first & 0b111;
+		auto mode = iter->second.first & 0b1111;
 		if (iter->second.second[mode] == 0b00)
 			iter->second.second[mode] = 0b00;
 		else if (iter->second.second[mode] == 0b01)
@@ -161,16 +161,16 @@ public:
 		auto iter = history.find(run_data.pc);
 		if (iter == history.end()) {
 			if (int32_t(run_data.imm) < 0) {
-				history.insert(std::make_pair(run_data.pc, std::make_pair(uint8_t(0), std::vector<uint8_t>(8, 0))));
+				history.insert(std::make_pair(run_data.pc, std::make_pair(uint8_t(0), std::vector<uint8_t>(16, 0))));
 				return true;
 			}
 			else {
 				uint8_t null_data[0b100] = { 0 };
-				history.insert(std::make_pair(run_data.pc, std::make_pair(uint8_t(0), std::vector<uint8_t>(8, 0))));
+				history.insert(std::make_pair(run_data.pc, std::make_pair(uint8_t(0), std::vector<uint8_t>(16, 0))));
 				return false;
 			}
 		}
-		return iter->second.second[iter->second.first & 0b111] >= 0b10;
+		return iter->second.second[iter->second.first & 0b1111] >= 0b10;
 	}
 	double accuracy_query() {
 		return double(right_cnt) / (double(right_cnt) + double(bad_cnt));
